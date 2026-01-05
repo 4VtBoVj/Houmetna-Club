@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "210162568512",
+    "project_id": "houmetna-club",
+    "storage_bucket": "houmetna-club.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:210162568512:android:5ab5dae966a0f1bc7e3ea5",
+        "android_client_info": {
+          "package_name": "com.example.mobile"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAyDFp120vnrYHRm8lGRQvfWzUEUAqnkug"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
