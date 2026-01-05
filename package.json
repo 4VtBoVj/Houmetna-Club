@@ -2,5 +2,26 @@
   "dependencies": {
     "firebase": "^12.7.0",
     "firebase-admin": "^13.6.0"
-  }
+  },
+  "name": "houmetna-club",
+  "version": "1.0.0",
+  "description": "A civic reporting platform where citizens can report urban issues (potholes, broken lights, waste management, etc.) to municipalities.",
+  "main": "test-functions.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/4VtBoVj/Houmetna-Club.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/4VtBoVj/Houmetna-Club/issues"
+  },
+  "homepage": "https://github.com/4VtBoVj/Houmetna-Club#readme"
 }
