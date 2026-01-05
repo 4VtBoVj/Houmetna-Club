@@ -14,9 +14,8 @@ exports.createReport = functions.https.onCall(async (data, context) => {
     userId: context.auth.uid,
     category: data.category,
     description: data.description,
-    location: data.latitude && data.longitude 
-      ? new admin.firestore.GeoPoint(data.latitude, data.longitude)
-      : null,
+    latitude: data.latitude || null,
+    longitude: data.longitude || null,
     photoURL: data.photoURL || null,
     status: 'new',
     createdAt: admin.firestore.FieldValue.serverTimestamp(),
@@ -24,7 +23,7 @@ exports.createReport = functions.https.onCall(async (data, context) => {
   }
 
   const docRef = await db.collection('reports').add(report)
-  return { id: docRef.id, ...report }
+  return { reportId: docRef.id, success: true }
 })
 
 // Update report status (admin only)
