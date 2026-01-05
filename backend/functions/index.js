@@ -60,6 +60,7 @@ exports.onReportStatusChange = functions.firestore
     const title = `Report status: ${after.status}`
     const body = `Your report "${(after.description || '').slice(0,60)}" is now ${after.status}.`
 
+    // Save to notifications collection
     await db.collection('notifications').add({
       userId,
       reportId,
@@ -69,8 +70,92 @@ exports.onReportStatusChange = functions.firestore
       createdAt: admin.firestore.FieldValue.serverTimestamp()
     })
     
+    // Send push notification if user has device tokens
+    if (userId) {
+      try {
+        const userDoc = await db.collection('users').doc(userId).get()
+        const deviceTokens = userDoc.data()?.deviceTokens || []
+        
+        if (deviceTokens.length > 0) {
+          const message = {
+            notification: {
+              title: title,
+              body: body
+            },
+            data: {
+              reportId: reportId,
+              status: after.status,
+              click_action: 'FLUTTER_NOTIFICATION_CLICK'
+            }
+          }
+          
+          // Send to all device tokens
+          const results = await Promise.all(
+            deviceTokens.map(token => 
+              admin.messaging().send({
+                ...message,
+                token: token
+              }).catch(error => {
+                // Log error but don't fail the whole function
+                console.error(`Failed to send to token ${token}:`, error)
+                return null
+              })
+            )
+          )
+          
+          console.log(`Sent notifications to ${results.filter(r => r !== null).length} devices`)
+        }
+      } catch (error) {
+        console.error('Error sending FCM notification:', error)
+      }
+    }
+    
     return null
   })
+
+// Save device token for push notifications
+exports.saveDeviceToken = functions.https.onCall(async (data, context) => {
+  if (!context.auth) {
+    throw new functions.https.HttpsError('unauthenticated', 'User must be logged in')
+  }
+
+  const token = data.token
+  if (!token) {
+    throw new functions.https.HttpsError('invalid-argument', 'Device token is required')
+  }
+
+  const userId = context.auth.uid
+  const userRef = db.collection('users').doc(userId)
+
+  // Add token to user's device tokens array (if not already there)
+  await userRef.set({
+    deviceTokens: admin.firestore.FieldValue.arrayUnion([token])
+  }, { merge: true })
+
+  return { success: true, message: 'Device token saved' }
+})
+
+// Remove device token on logout
+exports.removeDeviceToken = functions.https.onCall(async (data, context) => {
+  if (!context.auth) {
+    throw new functions.https.HttpsError('unauthenticated', 'User must be logged in')
+  }
+
+  const token = data.token
+  if (!token) {
+    throw new functions.https.HttpsError('invalid-argument', 'Device token is required')
+  }
+
+  const userId = context.auth.uid
+  const userRef = db.collection('users').doc(userId)
+
+  // Remove token from user's device tokens array
+  await userRef.set({
+    deviceTokens: admin.firestore.FieldValue.arrayRemove([token])
+  }, { merge: true })
+
+  return { success: true, message: 'Device token removed' }
+})
 
 // Get user's reports
 exports.getUserReports = functions.https.onCall(async (data, context) => {

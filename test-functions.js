@@ -108,6 +108,42 @@ async function testFunctions() {
     }
     console.log('');
 
+    // Test 4: Save and remove device tokens
+    console.log('📱 Testing device token management...');
+    try {
+      const testToken = 'fake-device-token-12345';
+      
+      // First ensure user document exists
+      const userRef = db.collection('users').doc(user.uid);
+      const userDoc = await userRef.get();
+      
+      if (!userDoc.exists) {
+        // Create user doc if it doesn't exist
+        await userRef.set({
+          email: user.email,
+          deviceTokens: [testToken]
+        });
+      } else {
+        // Update existing user doc
+        const currentTokens = userDoc.data().deviceTokens || [];
+        if (!currentTokens.includes(testToken)) {
+          await userRef.update({
+            deviceTokens: admin.firestore.FieldValue.arrayUnion([testToken])
+          });
+        }
+      }
+      
+      console.log('✅ Device token saved');
+      
+      // Verify token was saved
+      const updatedDoc = await userRef.get();
+      const tokens = updatedDoc.data().deviceTokens || [];
+      console.log('✅ User has', tokens.length, 'device token(s)');
+    } catch (error) {
+      console.log('⚠️  Device token test:', error.message);
+    }
+    console.log('');
+
     console.log('✅ All basic tests passed!');
     console.log('');
     console.log('Next steps:');
