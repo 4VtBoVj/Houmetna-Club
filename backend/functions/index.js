@@ -18,8 +18,8 @@ exports.createReport = functions.https.onCall(async (data, context) => {
     longitude: data.longitude || null,
     photoURL: data.photoURL || null,
     status: 'new',
-    createdAt: admin.firestore.FieldValue.serverTimestamp(),
-    updatedAt: admin.firestore.FieldValue.serverTimestamp()
+    createdAt: Date.now(),
+    updatedAt: Date.now()
   }
 
   const docRef = await db.collection('reports').add(report)
