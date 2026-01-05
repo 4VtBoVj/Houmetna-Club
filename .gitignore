@@ -1,5 +1,97 @@
+# ============================================
+# FIREBASE BACKEND
+# ============================================
+
+# Node modules
+backend/functions/node_modules/
 node_modules/
-dist/
+
+# Firebase
+.firebase/
+*-debug.log
+firestore-debug.log
+ui-debug.log
+firebase-debug.*.log
+
+# Environment files
 .env
+.env.local
+backend/functions/.env
 firebase-service-account.json
+
+# ============================================
+# FLUTTER FRONTEND (web/)
+# ============================================
+
+# Build outputs
+web/build/
+web/.dart_tool/
+web/.flutter-plugins
+web/.flutter-plugins-dependencies
+web/.packages
+web/.pub-cache/
+web/.pub/
+
+# IDE
+web/.idea/
+web/*.iml
+web/.vscode/
+
+# Generated files
+web/ios/Flutter/Generated.xcconfig
+web/ios/Flutter/flutter_export_environment.sh
+web/macos/Flutter/GeneratedPluginRegistrant.swift
+web/linux/flutter/generated_plugin_registrant.cc
+web/windows/flutter/generated_plugin_registrant.cc
+
+# Platform-specific
+web/ios/Pods/
+web/ios/.symlinks/
+web/android/.gradle/
+web/android/local.properties
+web/android/captures/
+web/android/app/debug/
+web/android/app/profile/
+web/android/app/release/
+
+# Chrome device emulator files
+web/.dart_tool/chrome-device/
+
+# ============================================
+# DOCUMENTATION
+# ============================================
+
+# Keep all docs
+!docs/
+!*.md
+
+# ============================================
+# OS FILES
+# ============================================
+
+# Windows
+Thumbs.db
+Desktop.ini
+
+# macOS
 .DS_Store
+.AppleDouble
+.LSOverride
+
+# Linux
+*~
+.directory
+
+# ============================================
+# MISC
+# ============================================
+
+# Test coverage
+coverage/
+
+# Temporary files
+*.tmp
+*.temp
+*.log
+*.swp
+*.swo
