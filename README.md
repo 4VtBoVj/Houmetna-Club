@@ -100,6 +100,7 @@ This will install all required packages (Firebase Functions, Firebase Admin SDK,
 firebase login
 ```
 
+
 This opens your browser to authenticate with Google. Use the account that has access to the `houmetna-club` Firebase project.
 
 ### Step 3: Link to Firebase Project
