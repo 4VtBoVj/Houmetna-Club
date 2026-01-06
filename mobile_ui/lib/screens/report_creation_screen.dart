@@ -4,6 +4,8 @@ import 'package:google_fonts/google_fonts.dart';
 import '../services/report_service.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
 
 class ReportCreationScreen extends StatefulWidget {
   final VoidCallback onBack;
@@ -21,6 +23,8 @@ class _ReportCreationScreenState extends State<ReportCreationScreen> {
   final _svc = ReportService();
   final _picker = ImagePicker();
   final List<XFile> _photos = [];
+  double _latitude = 33.5731;
+  double _longitude = -7.5898;
 
   Future<void> _submit() async {
     final desc = _descCtrl.text.trim();
@@ -31,25 +35,31 @@ class _ReportCreationScreenState extends State<ReportCreationScreen> {
     try {
       // Upload selected photos
       final urls = <String>[];
+      print('Starting photo upload, ${_photos.length} photos selected');
       for (final x in _photos) {
         final bytes = await x.readAsBytes();
-        final name = DateTime.now().millisecondsSinceEpoch.toString();
+        final name = '${DateTime.now().millisecondsSinceEpoch}_${urls.length}.jpg';
         final ref = FirebaseStorage.instance.ref().child('reports').child(name);
+        print('Uploading $name to Storage...');
         final task = await ref.putData(bytes, SettableMetadata(contentType: 'image/jpeg'));
         final url = await task.ref.getDownloadURL();
+        print('Photo uploaded successfully: $url');
         urls.add(url);
       }
+      print('All photos uploaded, URLs: $urls');
       await _svc.createReport(
         category: selected,
         description: desc,
-        latitude: 33.5731,
-        longitude: -7.5898,
+        latitude: _latitude,
+        longitude: _longitude,
         photoUrls: urls,
       );
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Report submitted')));
       widget.onSubmit();
-    } catch (e) {
+    } catch (e, stack) {
+      print('Submit error: $e');
+      print('Stack: $stack');
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Submit failed: $e')));
     }
@@ -211,18 +221,37 @@ class _ReportCreationScreenState extends State<ReportCreationScreen> {
             children: const [
               Icon(Icons.location_on, color: Colors.green),
               SizedBox(width: 8),
-              Text('Current Location'),
+              Text('Location'),
             ],
           ),
           const SizedBox(height: 8),
-          const Text('Rue Mohammed V, Casablanca'),
-          const Text('33.5731° N, 7.5898° W', style: TextStyle(color: Colors.black54)),
-          TextButton(onPressed: () {}, child: const Text('Change Location')),
-          const SizedBox(height: 6),
-          const Text('Location is automatically detected using GPS', style: TextStyle(color: Colors.black54, fontSize: 12)),
+          Text('${_latitude.toStringAsFixed(4)}, ${_longitude.toStringAsFixed(4)}', style: GoogleFonts.inter(fontWeight: FontWeight.w600)),
+          const SizedBox(height: 8),
+          TextButton.icon(
+            onPressed: _pickLocation,
+            icon: const Icon(Icons.map),
+            label: const Text('Pick Location on Map'),
+          ),
         ],
       ),
     );
+  }
+
+  Future<void> _pickLocation() async {
+    final result = await Navigator.of(context).push<Map<String, double>>(
+      MaterialPageRoute(
+        builder: (context) => _LocationPickerScreen(
+          initialLat: _latitude,
+          initialLng: _longitude,
+        ),
+      ),
+    );
+    if (result != null) {
+      setState(() {
+        _latitude = result['lat']!;
+        _longitude = result['lng']!;
+      });
+    }
   }
 
   Widget _tipsCard() {
@@ -254,6 +283,97 @@ class _ReportCreationScreenState extends State<ReportCreationScreen> {
                   ],
                 ),
               )),
+        ],
+      ),
+    );
+  }
+}
+
+class _LocationPickerScreen extends StatefulWidget {
+  final double initialLat;
+  final double initialLng;
+  const _LocationPickerScreen({required this.initialLat, required this.initialLng});
+
+  @override
+  State<_LocationPickerScreen> createState() => _LocationPickerScreenState();
+}
+
+class _LocationPickerScreenState extends State<_LocationPickerScreen> {
+  late double _lat;
+  late double _lng;
+  final _mapController = MapController();
+
+  @override
+  void initState() {
+    super.initState();
+    _lat = widget.initialLat;
+    _lng = widget.initialLng;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Pick Location'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, {'lat': _lat, 'lng': _lng}),
+            child: const Text('Confirm', style: TextStyle(color: Colors.blue)),
+          ),
+        ],
+      ),
+      body: Stack(
+        children: [
+          FlutterMap(
+            mapController: _mapController,
+            options: MapOptions(
+              initialCenter: LatLng(_lat, _lng),
+              initialZoom: 15,
+              onTap: (tapPosition, point) {
+                setState(() {
+                  _lat = point.latitude;
+                  _lng = point.longitude;
+                });
+              },
+            ),
+            children: [
+              TileLayer(
+                urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                userAgentPackageName: 'com.houmetna.mobile_ui',
+              ),
+              MarkerLayer(
+                markers: [
+                  Marker(
+                    width: 40,
+                    height: 40,
+                    point: LatLng(_lat, _lng),
+                    child: const Icon(Icons.location_on, color: Colors.red, size: 40),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          Positioned(
+            bottom: 20,
+            left: 20,
+            right: 20,
+            child: Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 8)],
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text('Tap on map to select location', style: GoogleFonts.inter(fontWeight: FontWeight.w600)),
+                  const SizedBox(height: 4),
+                  Text('${_lat.toStringAsFixed(5)}, ${_lng.toStringAsFixed(5)}', style: GoogleFonts.inter(color: Colors.black54)),
+                ],
+              ),
+            ),
+          ),
         ],
       ),
     );

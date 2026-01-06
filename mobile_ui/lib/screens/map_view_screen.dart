@@ -27,13 +27,28 @@ class MapViewScreen extends StatelessWidget {
                 point: LatLng(r.latitude, r.longitude),
                 child: GestureDetector(
                   onTap: () => onReportTap(r.id),
-                  child: const Icon(Icons.location_on, color: Colors.red, size: 32),
+                  child: Column(
+                    children: [
+                      Icon(
+                        Icons.location_on,
+                        color: r.status == 'resolved' ? Colors.green : (r.status == 'in-progress' ? Colors.blue : Colors.red),
+                        size: 36,
+                      ),
+                    ],
+                  ),
                 ),
               )).toList();
+          
+          final center = reports.isNotEmpty 
+              ? LatLng(reports.first.latitude, reports.first.longitude) 
+              : const LatLng(33.5731, -7.5898);
+
           return FlutterMap(
             options: MapOptions(
-              initialCenter: reports.isNotEmpty ? LatLng(reports.first.latitude, reports.first.longitude) : const LatLng(33.5731, -7.5898),
+              initialCenter: center,
               initialZoom: 13,
+              minZoom: 5,
+              maxZoom: 18,
             ),
             children: [
               TileLayer(
