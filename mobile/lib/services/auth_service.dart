@@ -6,23 +6,8 @@ class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFunctions _functions = FirebaseFunctions.instance;
 
-  // Use local emulator for development (Android only, not web)
-  AuthService() {
-    final isAndroid = !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
-
-    if (isAndroid) {
-      try {
-        // Use 10.0.2.2 for Android emulator
-        _auth.useAuthEmulator('10.0.2.2', 9099);
-        _functions.useFunctionsEmulator('10.0.2.2', 5001);
-        print('✅ Emulator connections enabled');
-      } catch (e) {
-        print('⚠️ Emulator connection failed: $e');
-      }
-    } else {
-      print('ℹ️ Not on Android (or running on web) - skipping emulator');
-    }
-  }
+  // Emulator config handled centrally in main.dart
+  AuthService();
 
   // Get auth state changes
   Stream<User?> get authStateChanges => _auth.authStateChanges();

@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb, kDebugMode, defaultTargetPlatform, TargetPlatform;
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 import 'firebase_options.dart';
 import 'pages/login_page.dart';
 import 'pages/home_page.dart';
@@ -12,6 +16,25 @@ void main() async {
       options: DefaultFirebaseOptions.currentPlatform,
     );
     print('✅ Firebase initialized successfully');
+
+    // Point to local emulators in debug builds
+    if (kDebugMode) {
+      final auth = FirebaseAuth.instance;
+      final firestore = FirebaseFirestore.instance;
+      final functions = FirebaseFunctions.instance;
+
+      // Host per platform
+      final host = kIsWeb
+          ? '127.0.0.1' // Chrome hitting local emulators
+          : (defaultTargetPlatform == TargetPlatform.android
+              ? '10.0.2.2' // Android emulator to host machine
+              : 'localhost');
+
+      auth.useAuthEmulator(host, 9099);
+      firestore.useFirestoreEmulator(host, 8080);
+      functions.useFunctionsEmulator(host, 5001);
+      print('🔗 Using emulators at $host (auth 9099, firestore 8080, functions 5001)');
+    }
   } catch (e) {
     print('❌ Firebase init error: $e');
     print('⚠️ Running without Firebase - check your google-services.json');
