@@ -67,7 +67,24 @@ class ReportDetailsScreen extends StatelessWidget {
       return SizedBox(
         height: 220,
         child: PageView(
-          children: photos.map((url) => Image.network(url, fit: BoxFit.cover)).toList(),
+          children: photos.map((url) => Image.network(
+            url,
+            fit: BoxFit.cover,
+            loadingBuilder: (context, child, loadingProgress) {
+              if (loadingProgress == null) return child;
+              return const Center(child: CircularProgressIndicator());
+            },
+            errorBuilder: (context, error, stackTrace) {
+              print('Image load error: $error');
+              print('URL: $url');
+              return Container(
+                color: Colors.grey.shade200,
+                child: const Center(
+                  child: Icon(Icons.broken_image, size: 48, color: Colors.grey),
+                ),
+              );
+            },
+          )).toList(),
         ),
       );
     }

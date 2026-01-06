@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../services/report_service.dart';
@@ -121,10 +122,18 @@ class _ReportCreationScreenState extends State<ReportCreationScreen> {
           Wrap(
             spacing: 8,
             runSpacing: 8,
-            children: _photos.map((x) => SizedBox(
-              width: 80,
-              height: 80,
-              child: Image.network(x.path, fit: BoxFit.cover),
+            children: _photos.map((x) => FutureBuilder<Uint8List>(
+              future: x.readAsBytes(),
+              builder: (ctx, snap) {
+                if (snap.hasData) {
+                  return SizedBox(
+                    width: 80,
+                    height: 80,
+                    child: Image.memory(snap.data!, fit: BoxFit.cover),
+                  );
+                }
+                return const SizedBox(width: 80, height: 80, child: CircularProgressIndicator());
+              },
             )).toList(),
           ),
         ],
