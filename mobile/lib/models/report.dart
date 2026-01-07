@@ -28,6 +28,23 @@ class Report {
 
   factory Report.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
+    DateTime _toDate(dynamic value) {
+      if (value == null) return DateTime.now();
+      if (value is Timestamp) return value.toDate();
+      if (value is int) {
+        // Firestore via Functions may store milliseconds since epoch (Date.now())
+        return DateTime.fromMillisecondsSinceEpoch(value);
+      }
+      if (value is double) {
+        return DateTime.fromMillisecondsSinceEpoch(value.toInt());
+      }
+      if (value is String) {
+        // Try parse ISO strings
+        final parsed = DateTime.tryParse(value);
+        if (parsed != null) return parsed;
+      }
+      return DateTime.now();
+    }
     return Report(
       id: doc.id,
       userId: data['userId'] ?? '',
@@ -37,8 +54,16 @@ class Report {
       longitude: (data['longitude'] ?? 0.0).toDouble(),
       status: data['status'] ?? 'new',
       photoUrls: List<String>.from(data['photoUrls'] ?? []),
-      createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
-      updatedAt: (data['updatedAt'] as Timestamp?)?.toDate(),
+      createdAt: _toDate(data['createdAt']),
+      updatedAt: ((){
+        final v = data['updatedAt'];
+        if (v == null) return null;
+        if (v is Timestamp) return v.toDate();
+        if (v is int) return DateTime.fromMillisecondsSinceEpoch(v);
+        if (v is double) return DateTime.fromMillisecondsSinceEpoch(v.toInt());
+        if (v is String) return DateTime.tryParse(v);
+        return null;
+      })(),
     );
   }
 
