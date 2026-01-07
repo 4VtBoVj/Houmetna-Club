@@ -4,6 +4,10 @@ const admin = require('firebase-admin')
 admin.initializeApp()
 const db = admin.firestore()
 
+// Firestore helpers from initialized admin
+const FieldValue = admin.firestore.FieldValue
+const Timestamp = admin.firestore.Timestamp
+
 // Create a new report
 exports.createReport = functions.https.onCall(async (data, context) => {
   if (!context.auth) {
@@ -16,7 +20,8 @@ exports.createReport = functions.https.onCall(async (data, context) => {
     description: data.description,
     latitude: data.latitude || null,
     longitude: data.longitude || null,
-    photoURL: data.photoURL || null,
+    // store photoUrls as an array to match the mobile UI model
+    photoUrls: Array.isArray(data.photoUrls) ? data.photoUrls : (data.photoURL ? [data.photoURL] : []),
     status: 'new',
     createdAt: Date.now(),
     updatedAt: Date.now()
@@ -38,12 +43,31 @@ exports.updateReportStatus = functions.https.onCall(async (data, context) => {
     throw new functions.https.HttpsError('permission-denied', 'Admin only')
   }
 
-  await db.collection('reports').doc(data.reportId).update({
-    status: data.status,
-    updatedAt: admin.firestore.FieldValue.serverTimestamp()
-  })
+  // Validate input
+  if (!data || !data.reportId || !data.status) {
+    throw new functions.https.HttpsError('invalid-argument', 'reportId and status are required')
+  }
 
-  return { success: true }
+  try {
+    const reportRef = db.collection('reports').doc(data.reportId)
+
+    // Ensure report exists before updating to avoid NOT_FOUND errors
+    const reportSnap = await reportRef.get()
+    if (!reportSnap.exists) {
+      throw new functions.https.HttpsError('not-found', 'Report not found')
+    }
+
+    await reportRef.update({
+      status: data.status,
+      updatedAt: (FieldValue && FieldValue.serverTimestamp) ? FieldValue.serverTimestamp() : Timestamp.now()
+    })
+
+    return { success: true }
+  } catch (err) {
+    // Log full error for debugging and return an INTERNAL HttpsError with minimal info
+    console.error('updateReportStatus error:', err)
+    throw new functions.https.HttpsError('internal', 'Failed to update report status')
+  }
 })
 
 // Trigger: Send notification when status changes
@@ -67,7 +91,7 @@ exports.onReportStatusChange = functions.firestore
       title,
       body,
       read: false,
-      createdAt: admin.firestore.FieldValue.serverTimestamp()
+      createdAt: (FieldValue && FieldValue.serverTimestamp) ? FieldValue.serverTimestamp() : Timestamp.now()
     })
     
     // Send push notification if user has device tokens
@@ -129,7 +153,7 @@ exports.saveDeviceToken = functions.https.onCall(async (data, context) => {
 
   // Add token to user's device tokens array (if not already there)
   await userRef.set({
-    deviceTokens: admin.firestore.FieldValue.arrayUnion([token])
+    deviceTokens: FieldValue.arrayUnion(token)
   }, { merge: true })
 
   return { success: true, message: 'Device token saved' }
@@ -151,7 +175,7 @@ exports.removeDeviceToken = functions.https.onCall(async (data, context) => {
 
   // Remove token from user's device tokens array
   await userRef.set({
-    deviceTokens: admin.firestore.FieldValue.arrayRemove([token])
+    deviceTokens: FieldValue.arrayRemove(token)
   }, { merge: true })
 
   return { success: true, message: 'Device token removed' }

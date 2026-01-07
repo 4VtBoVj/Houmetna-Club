@@ -135,7 +135,13 @@ class _HoumetnaAppState extends State<HoumetnaApp> {
       case AppScreen.signup:
         body = SignupScreen(
           onBack: () => go(AppScreen.login),
-          onSignedUp: () => go(AppScreen.home),
+          onSignedUp: () async {
+            // After creating an account the SDK signs the user in automatically.
+            // Sign them out and return to the login screen so they must explicitly
+            // sign in with the credentials they just created.
+            await _authService.signOut();
+            go(AppScreen.login);
+          },
         );
         break;
       case AppScreen.home:
