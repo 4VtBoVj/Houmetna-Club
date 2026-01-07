@@ -10,14 +10,22 @@ import 'package:latlong2/latlong.dart';
 class ReportCreationScreen extends StatefulWidget {
   final VoidCallback onBack;
   final VoidCallback onSubmit;
-  const ReportCreationScreen({super.key, required this.onBack, required this.onSubmit});
+  const ReportCreationScreen(
+      {super.key, required this.onBack, required this.onSubmit});
 
   @override
   State<ReportCreationScreen> createState() => _ReportCreationScreenState();
 }
 
 class _ReportCreationScreenState extends State<ReportCreationScreen> {
-  final categories = ['Roads', 'Lighting', 'Waste', 'Water', 'Environment', 'Safety'];
+  final categories = [
+    'Roads',
+    'Lighting',
+    'Waste',
+    'Water',
+    'Environment',
+    'Safety'
+  ];
   String selected = 'Roads';
   final _descCtrl = TextEditingController();
   final _svc = ReportService();
@@ -29,7 +37,8 @@ class _ReportCreationScreenState extends State<ReportCreationScreen> {
   Future<void> _submit() async {
     final desc = _descCtrl.text.trim();
     if (desc.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please provide a description')));
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please provide a description')));
       return;
     }
     try {
@@ -38,10 +47,12 @@ class _ReportCreationScreenState extends State<ReportCreationScreen> {
       print('Starting photo upload, ${_photos.length} photos selected');
       for (final x in _photos) {
         final bytes = await x.readAsBytes();
-        final name = '${DateTime.now().millisecondsSinceEpoch}_${urls.length}.jpg';
+        final name =
+            '${DateTime.now().millisecondsSinceEpoch}_${urls.length}.jpg';
         final ref = FirebaseStorage.instance.ref().child('reports').child(name);
         print('Uploading $name to Storage...');
-        final task = await ref.putData(bytes, SettableMetadata(contentType: 'image/jpeg'));
+        final task = await ref.putData(
+            bytes, SettableMetadata(contentType: 'image/jpeg'));
         final url = await task.ref.getDownloadURL();
         print('Photo uploaded successfully: $url');
         urls.add(url);
@@ -55,20 +66,24 @@ class _ReportCreationScreenState extends State<ReportCreationScreen> {
         photoUrls: urls,
       );
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Report submitted')));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('Report submitted')));
       widget.onSubmit();
     } catch (e, stack) {
       print('Submit error: $e');
       print('Stack: $stack');
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Submit failed: $e')));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('Submit failed: $e')));
     }
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: widget.onBack),
+        leading: IconButton(
+            icon: const Icon(Icons.arrow_back), onPressed: widget.onBack),
         title: const Text('Report a Problem'),
       ),
       body: SingleChildScrollView(
@@ -78,11 +93,13 @@ class _ReportCreationScreenState extends State<ReportCreationScreen> {
           children: [
             _photoPicker(),
             const SizedBox(height: 16),
-            Text('Select Category *', style: GoogleFonts.inter(fontWeight: FontWeight.w700)),
+            Text('Select Category *',
+                style: GoogleFonts.inter(fontWeight: FontWeight.w700)),
             const SizedBox(height: 10),
             _categoryGrid(),
             const SizedBox(height: 16),
-            Text('Description *', style: GoogleFonts.inter(fontWeight: FontWeight.w700)),
+            Text('Description *',
+                style: GoogleFonts.inter(fontWeight: FontWeight.w700)),
             const SizedBox(height: 8),
             _inputArea('Describe the problem in detail...'),
             const SizedBox(height: 12),
@@ -100,7 +117,8 @@ class _ReportCreationScreenState extends State<ReportCreationScreen> {
             backgroundColor: const Color(0xFF5B8DEF),
             foregroundColor: Colors.white,
             padding: const EdgeInsets.symmetric(vertical: 16),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           ),
           child: const Text('Submit Report'),
         ),
@@ -114,14 +132,16 @@ class _ReportCreationScreenState extends State<ReportCreationScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.blue.shade100, style: BorderStyle.solid, width: 1),
+        border: Border.all(
+            color: Colors.blue.shade100, style: BorderStyle.solid, width: 1),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(Icons.camera_alt_outlined, size: 40, color: Colors.blue.shade400),
+              Icon(Icons.camera_alt_outlined,
+                  size: 40, color: Colors.blue.shade400),
               const SizedBox(width: 12),
               const Text('Add photos'),
               const Spacer(),
@@ -132,19 +152,24 @@ class _ReportCreationScreenState extends State<ReportCreationScreen> {
           Wrap(
             spacing: 8,
             runSpacing: 8,
-            children: _photos.map((x) => FutureBuilder<Uint8List>(
-              future: x.readAsBytes(),
-              builder: (ctx, snap) {
-                if (snap.hasData) {
-                  return SizedBox(
-                    width: 80,
-                    height: 80,
-                    child: Image.memory(snap.data!, fit: BoxFit.cover),
-                  );
-                }
-                return const SizedBox(width: 80, height: 80, child: CircularProgressIndicator());
-              },
-            )).toList(),
+            children: _photos
+                .map((x) => FutureBuilder<Uint8List>(
+                      future: x.readAsBytes(),
+                      builder: (ctx, snap) {
+                        if (snap.hasData) {
+                          return SizedBox(
+                            width: 80,
+                            height: 80,
+                            child: Image.memory(snap.data!, fit: BoxFit.cover),
+                          );
+                        }
+                        return const SizedBox(
+                            width: 80,
+                            height: 80,
+                            child: CircularProgressIndicator());
+                      },
+                    ))
+                .toList(),
           ),
         ],
       ),
@@ -153,7 +178,7 @@ class _ReportCreationScreenState extends State<ReportCreationScreen> {
 
   Future<void> _pickPhoto() async {
     final result = await _picker.pickMultiImage();
-    if (result != null && result.isNotEmpty) {
+    if (result.isNotEmpty) {
       setState(() {
         _photos
           ..clear()
@@ -182,10 +207,15 @@ class _ReportCreationScreenState extends State<ReportCreationScreen> {
             decoration: BoxDecoration(
               color: selectedCard ? const Color(0xFFEEF4FF) : Colors.white,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: selectedCard ? const Color(0xFF5B8DEF) : Colors.grey.shade200),
+              border: Border.all(
+                  color: selectedCard
+                      ? const Color(0xFF5B8DEF)
+                      : Colors.grey.shade200),
             ),
             child: Center(
-              child: Text(c, style: GoogleFonts.inter(fontWeight: FontWeight.w600, color: Colors.black87)),
+              child: Text(c,
+                  style: GoogleFonts.inter(
+                      fontWeight: FontWeight.w600, color: Colors.black87)),
             ),
           ),
         );
@@ -201,7 +231,9 @@ class _ReportCreationScreenState extends State<ReportCreationScreen> {
         hintText: hint,
         filled: true,
         fillColor: Colors.white,
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+        border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide.none),
       ),
     );
   }
@@ -212,7 +244,12 @@ class _ReportCreationScreenState extends State<ReportCreationScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        boxShadow: [BoxShadow(color: Colors.black12.withOpacity(0.05), blurRadius: 8, offset: const Offset(0, 3))],
+        boxShadow: [
+          BoxShadow(
+              color: Colors.black12.withOpacity(0.05),
+              blurRadius: 8,
+              offset: const Offset(0, 3))
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -225,7 +262,9 @@ class _ReportCreationScreenState extends State<ReportCreationScreen> {
             ],
           ),
           const SizedBox(height: 8),
-          Text('${_latitude.toStringAsFixed(4)}, ${_longitude.toStringAsFixed(4)}', style: GoogleFonts.inter(fontWeight: FontWeight.w600)),
+          Text(
+              '${_latitude.toStringAsFixed(4)}, ${_longitude.toStringAsFixed(4)}',
+              style: GoogleFonts.inter(fontWeight: FontWeight.w600)),
           const SizedBox(height: 8),
           TextButton.icon(
             onPressed: _pickLocation,
@@ -266,12 +305,18 @@ class _ReportCreationScreenState extends State<ReportCreationScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        boxShadow: [BoxShadow(color: Colors.black12.withOpacity(0.05), blurRadius: 8, offset: const Offset(0, 3))],
+        boxShadow: [
+          BoxShadow(
+              color: Colors.black12.withOpacity(0.05),
+              blurRadius: 8,
+              offset: const Offset(0, 3))
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Tips for a better report:', style: GoogleFonts.inter(fontWeight: FontWeight.w700)),
+          Text('Tips for a better report:',
+              style: GoogleFonts.inter(fontWeight: FontWeight.w700)),
           const SizedBox(height: 8),
           ...tips.map((t) => Padding(
                 padding: const EdgeInsets.symmetric(vertical: 4),
@@ -292,7 +337,8 @@ class _ReportCreationScreenState extends State<ReportCreationScreen> {
 class _LocationPickerScreen extends StatefulWidget {
   final double initialLat;
   final double initialLng;
-  const _LocationPickerScreen({required this.initialLat, required this.initialLng});
+  const _LocationPickerScreen(
+      {required this.initialLat, required this.initialLng});
 
   @override
   State<_LocationPickerScreen> createState() => _LocationPickerScreenState();
@@ -347,7 +393,8 @@ class _LocationPickerScreenState extends State<_LocationPickerScreen> {
                     width: 40,
                     height: 40,
                     point: LatLng(_lat, _lng),
-                    child: const Icon(Icons.location_on, color: Colors.red, size: 40),
+                    child: const Icon(Icons.location_on,
+                        color: Colors.red, size: 40),
                   ),
                 ],
               ),
@@ -367,9 +414,11 @@ class _LocationPickerScreenState extends State<_LocationPickerScreen> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text('Tap on map to select location', style: GoogleFonts.inter(fontWeight: FontWeight.w600)),
+                  Text('Tap on map to select location',
+                      style: GoogleFonts.inter(fontWeight: FontWeight.w600)),
                   const SizedBox(height: 4),
-                  Text('${_lat.toStringAsFixed(5)}, ${_lng.toStringAsFixed(5)}', style: GoogleFonts.inter(color: Colors.black54)),
+                  Text('${_lat.toStringAsFixed(5)}, ${_lng.toStringAsFixed(5)}',
+                      style: GoogleFonts.inter(color: Colors.black54)),
                 ],
               ),
             ),

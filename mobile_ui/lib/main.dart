@@ -19,7 +19,6 @@ import 'screens/my_reports_screen.dart';
 import 'screens/profile_screen.dart';
 import 'screens/municipality_dashboard_screen.dart';
 import 'services/auth_service.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'screens/notifications_screen.dart';
 
 Future<void> _initFirebase() async {
