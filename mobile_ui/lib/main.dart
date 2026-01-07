@@ -5,7 +5,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_storage/firebase_storage.dart';
-import 'package:flutter/foundation.dart' show kIsWeb, defaultTargetPlatform, TargetPlatform;
+import 'package:flutter/foundation.dart'
+    show kIsWeb, defaultTargetPlatform, TargetPlatform;
 import 'firebase_options.dart';
 import 'screens/onboarding_screen.dart';
 import 'screens/login_screen.dart';
@@ -17,17 +18,23 @@ import 'screens/report_details_screen.dart';
 import 'screens/my_reports_screen.dart';
 import 'screens/profile_screen.dart';
 import 'screens/municipality_dashboard_screen.dart';
+import 'services/auth_service.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'screens/notifications_screen.dart';
 
 Future<void> _initFirebase() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
-  final useEmulators = const String.fromEnvironment('USE_EMULATORS', defaultValue: 'true') == 'true';
+  final useEmulators =
+      const String.fromEnvironment('USE_EMULATORS', defaultValue: 'true') ==
+          'true';
   if (useEmulators) {
     final host = kIsWeb
         ? '127.0.0.1'
-        : (defaultTargetPlatform == TargetPlatform.android ? '10.0.2.2' : 'localhost');
+        : (defaultTargetPlatform == TargetPlatform.android
+            ? '10.0.2.2'
+            : 'localhost');
     try {
       await FirebaseAuth.instance.useAuthEmulator(host, 9099);
       FirebaseFirestore.instance.useFirestoreEmulator(host, 8080);
@@ -74,6 +81,8 @@ class HoumetnaApp extends StatefulWidget {
 class _HoumetnaAppState extends State<HoumetnaApp> {
   AppScreen current = AppScreen.onboarding;
   String? selectedReportId;
+  String userRole = 'user'; // Track user role
+  final _authService = AuthService();
 
   void go(AppScreen screen) {
     setState(() => current = screen);
@@ -84,6 +93,11 @@ class _HoumetnaAppState extends State<HoumetnaApp> {
       selectedReportId = id;
       current = AppScreen.reportDetails;
     });
+  }
+
+  Future<void> _updateUserRole() async {
+    final role = await _authService.getUserRole();
+    setState(() => userRole = role);
   }
 
   @override
@@ -110,7 +124,10 @@ class _HoumetnaAppState extends State<HoumetnaApp> {
         break;
       case AppScreen.login:
         body = LoginScreen(
-          onLogin: () => go(AppScreen.home),
+          onLogin: () {
+            _updateUserRole();
+            go(AppScreen.home);
+          },
           onSignup: () => go(AppScreen.signup),
           onForgot: () {},
         );
@@ -125,6 +142,7 @@ class _HoumetnaAppState extends State<HoumetnaApp> {
         body = HomeScreen(
           onNavigate: (s) => go(s),
           onReportDetails: (id) => openReport(id),
+          userRole: userRole,
         );
         break;
       case AppScreen.reportCreation:

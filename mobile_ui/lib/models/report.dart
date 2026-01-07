@@ -32,13 +32,15 @@ class Report {
       if (value == null) return DateTime.now();
       if (value is Timestamp) return value.toDate();
       if (value is int) return DateTime.fromMillisecondsSinceEpoch(value);
-      if (value is double) return DateTime.fromMillisecondsSinceEpoch(value.toInt());
+      if (value is double)
+        return DateTime.fromMillisecondsSinceEpoch(value.toInt());
       if (value is String) {
         final parsed = DateTime.tryParse(value);
         if (parsed != null) return parsed;
       }
       return DateTime.now();
     }
+
     return Report(
       id: doc.id,
       userId: data['userId'] ?? '',
@@ -71,6 +73,10 @@ class Report {
       default:
         return const Color(0xFFFFA500);
     }
+  }
+
+  String get location {
+    return '${latitude.toStringAsFixed(4)}, ${longitude.toStringAsFixed(4)}';
   }
 
   String getStatusLabel() {

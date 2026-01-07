@@ -7,10 +7,10 @@ service cloud.firestore {
       allow create: if request.auth != null; // Authenticated users can create
       allow update: if request.auth != null && (
         request.auth.uid == resource.data.userId || // Owner can update
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true // Admin can update
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' // Admin can update
       );
       allow delete: if request.auth != null && 
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
     
     // Users collection

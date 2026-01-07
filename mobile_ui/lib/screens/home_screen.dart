@@ -3,14 +3,20 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../main.dart';
 import '../services/report_service.dart';
-import '../models/report.dart';
-import '../services/report_service.dart';
+import '../services/auth_service.dart';
 import '../models/report.dart';
 
 class HomeScreen extends StatelessWidget {
   final void Function(AppScreen) onNavigate;
   final void Function(String reportId) onReportDetails;
-  const HomeScreen({super.key, required this.onNavigate, required this.onReportDetails});
+  final String userRole;
+
+  const HomeScreen({
+    super.key,
+    required this.onNavigate,
+    required this.onReportDetails,
+    this.userRole = 'user',
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -54,16 +60,21 @@ class HomeScreen extends StatelessWidget {
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Hello, $name', style: GoogleFonts.inter(fontSize: 22, fontWeight: FontWeight.w700)),
+            Text('Hello, $name',
+                style: GoogleFonts.inter(
+                    fontSize: 22, fontWeight: FontWeight.w700)),
             const SizedBox(height: 4),
-            Text("Let's make our city better", style: GoogleFonts.inter(color: Colors.black54)),
+            Text("Let's make our city better",
+                style: GoogleFonts.inter(color: Colors.black54)),
           ],
         ),
         const Spacer(),
         CircleAvatar(
           radius: 20,
           backgroundColor: const Color(0xFF1F75FF),
-          child: Text(initials, style: GoogleFonts.inter(color: Colors.white, fontWeight: FontWeight.bold)),
+          child: Text(initials,
+              style: GoogleFonts.inter(
+                  color: Colors.white, fontWeight: FontWeight.bold)),
         ),
       ],
     );
@@ -78,17 +89,24 @@ class HomeScreen extends StatelessWidget {
             color: Colors.white,
             borderRadius: BorderRadius.circular(12),
             boxShadow: [
-              BoxShadow(color: Colors.black12.withOpacity(0.05), blurRadius: 8, offset: const Offset(0, 3)),
+              BoxShadow(
+                  color: Colors.black12.withOpacity(0.05),
+                  blurRadius: 8,
+                  offset: const Offset(0, 3)),
             ],
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(title, style: GoogleFonts.inter(fontSize: 12, color: Colors.black54)),
+              Text(title,
+                  style:
+                      GoogleFonts.inter(fontSize: 12, color: Colors.black54)),
               const SizedBox(height: 6),
               Row(
                 children: [
-                  Text(value, style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w700)),
+                  Text(value,
+                      style: GoogleFonts.inter(
+                          fontSize: 18, fontWeight: FontWeight.w700)),
                 ],
               ),
             ],
@@ -141,7 +159,8 @@ class HomeScreen extends StatelessWidget {
                 foregroundColor: Colors.white,
                 elevation: 0,
                 padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12)),
               ),
             ),
           ),
@@ -162,14 +181,18 @@ class HomeScreen extends StatelessWidget {
               color: Colors.white,
               borderRadius: BorderRadius.circular(12),
               boxShadow: [
-                BoxShadow(color: Colors.black12.withOpacity(0.05), blurRadius: 8, offset: const Offset(0, 3)),
+                BoxShadow(
+                    color: Colors.black12.withOpacity(0.05),
+                    blurRadius: 8,
+                    offset: const Offset(0, 3)),
               ],
             ),
             child: Column(
               children: [
                 Icon(icon, color: const Color(0xFF1F75FF)),
                 const SizedBox(height: 8),
-                Text(title, style: GoogleFonts.inter(fontWeight: FontWeight.w600)),
+                Text(title,
+                    style: GoogleFonts.inter(fontWeight: FontWeight.w600)),
               ],
             ),
           ),
@@ -179,9 +202,15 @@ class HomeScreen extends StatelessWidget {
 
     return Row(
       children: [
-        tile('My Reports', Icons.list_alt, () => onNavigate(AppScreen.myReports)),
+        tile('My Reports', Icons.list_alt,
+            () => onNavigate(AppScreen.myReports)),
         const SizedBox(width: 12),
         tile('Map View', Icons.map, () => onNavigate(AppScreen.map)),
+        if (userRole == 'admin') ...[
+          const SizedBox(width: 12),
+          tile('Dashboard', Icons.admin_panel_settings,
+              () => onNavigate(AppScreen.municipality)),
+        ]
       ],
     );
   }
@@ -212,13 +241,18 @@ class HomeScreen extends StatelessWidget {
             color: Colors.white,
             borderRadius: BorderRadius.circular(12),
             boxShadow: [
-              BoxShadow(color: Colors.black12.withOpacity(0.05), blurRadius: 8, offset: const Offset(0, 3)),
+              BoxShadow(
+                  color: Colors.black12.withOpacity(0.05),
+                  blurRadius: 8,
+                  offset: const Offset(0, 3)),
             ],
           ),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              CircleAvatar(backgroundColor: c.$3.withOpacity(0.15), child: Icon(c.$2, color: c.$3)),
+              CircleAvatar(
+                  backgroundColor: c.$3.withOpacity(0.15),
+                  child: Icon(c.$2, color: c.$3)),
               const SizedBox(height: 8),
               Text(c.$1, style: GoogleFonts.inter(fontWeight: FontWeight.w600)),
             ],
@@ -232,7 +266,9 @@ class HomeScreen extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Recent Activity', style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w700)),
+        Text('Recent Activity',
+            style:
+                GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w700)),
         const SizedBox(height: 8),
         StreamBuilder<List<Report>>(
           stream: ReportService().getUserReports(),
@@ -253,20 +289,28 @@ class HomeScreen extends StatelessWidget {
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(12),
                       boxShadow: [
-                        BoxShadow(color: Colors.black12.withOpacity(0.05), blurRadius: 8, offset: const Offset(0, 3)),
+                        BoxShadow(
+                            color: Colors.black12.withOpacity(0.05),
+                            blurRadius: 8,
+                            offset: const Offset(0, 3)),
                       ],
                     ),
                     child: Row(
                       children: [
-                        const Icon(Icons.notifications, color: Color(0xFF1F75FF)),
+                        const Icon(Icons.notifications,
+                            color: Color(0xFF1F75FF)),
                         const SizedBox(width: 10),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(msg, style: GoogleFonts.inter(fontWeight: FontWeight.w600)),
+                              Text(msg,
+                                  style: GoogleFonts.inter(
+                                      fontWeight: FontWeight.w600)),
                               const SizedBox(height: 4),
-                              Text('${r.createdAt}', style: GoogleFonts.inter(color: Colors.black54, fontSize: 12)),
+                              Text('${r.createdAt}',
+                                  style: GoogleFonts.inter(
+                                      color: Colors.black54, fontSize: 12)),
                             ],
                           ),
                         ),
@@ -310,8 +354,10 @@ class HomeScreen extends StatelessWidget {
       items: const [
         BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
         BottomNavigationBarItem(icon: Icon(Icons.assignment), label: 'Reports'),
-        BottomNavigationBarItem(icon: Icon(Icons.add_circle, size: 32), label: 'Add'),
-        BottomNavigationBarItem(icon: Icon(Icons.notifications), label: 'Alerts'),
+        BottomNavigationBarItem(
+            icon: Icon(Icons.add_circle, size: 32), label: 'Add'),
+        BottomNavigationBarItem(
+            icon: Icon(Icons.notifications), label: 'Alerts'),
         BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
       ],
     );
@@ -347,4 +393,5 @@ String _nameFromEmail(String email) {
   return _capitalize(segs.first);
 }
 
-String _capitalize(String s) => s.isEmpty ? s : s[0].toUpperCase() + s.substring(1);
+String _capitalize(String s) =>
+    s.isEmpty ? s : s[0].toUpperCase() + s.substring(1);
