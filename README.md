@@ -130,6 +130,8 @@ From the project root (`C:\Project\Houmetna Club`):
 firebase emulators:start
 ```
 
+
+
 You'll see:
 ```
 ✔  All emulators ready!
